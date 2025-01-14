@@ -12,8 +12,10 @@ export function NotesList() {
 
   return (
     <div className="w-72 border-r border-sidebar-border flex flex-col max-h-screen">
-      <div className="p-2 flex gap-x-2 items-center border-b border-sidebar-border">
-        <SidebarTrigger />
+      <div className="app-region-drag py-3">
+        <SidebarTrigger className="size-4 fixed left-20 top-2 z-50 app-region-no-drag" />
+      </div>
+      <div className="p-2 border-b border-sidebar-border">
         <SidebarInput placeholder="Search..." />
       </div>
       <ScrollArea>
