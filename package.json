@@ -22,11 +22,13 @@
     "clean": "rm -rf ./node_modules ./dist ./dist-electron ./release ./models"
   },
   "dependencies": {
+    "@hookform/resolvers": "^3.10.0",
     "@instantdb/react": "^0.17.7",
     "@radix-ui/react-avatar": "^1.1.2",
     "@radix-ui/react-collapsible": "^1.1.2",
     "@radix-ui/react-dialog": "^1.1.4",
     "@radix-ui/react-dropdown-menu": "^2.1.4",
+    "@radix-ui/react-label": "^2.1.1",
     "@radix-ui/react-scroll-area": "^1.2.2",
     "@radix-ui/react-separator": "^1.1.1",
     "@radix-ui/react-slot": "^1.1.1",
@@ -38,16 +40,19 @@
     "classnames": "^2.5.1",
     "clsx": "^2.1.1",
     "highlight.js": "^11.11.1",
+    "input-otp": "^1.4.2",
     "lifecycle-utils": "^2.0.0",
     "lucide-react": "^0.471.0",
     "markdown-it": "^14.1.0",
     "node-llama-cpp": "^3.4.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-hook-form": "^7.54.2",
     "remirror": "^3.0.1",
     "semver": "^7.6.3",
     "tailwind-merge": "^2.6.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.12.1",
