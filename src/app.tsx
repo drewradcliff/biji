@@ -43,6 +43,7 @@ import {
   FormLabel,
   FormMessage,
 } from "./components/ui/form";
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 
 export function App() {
   const { user } = db.useAuth();
@@ -188,9 +189,7 @@ function SignUp({ setSentEmail }: { setSentEmail: (email: string) => void }) {
             <div className="h-px bg-gray-200 w-full" />
           </div>
         </form>
-        <Button className="w-full" variant="outline">
-          Continue with Google
-        </Button>
+        <GoogleOAuth />
       </Form>
     </DialogContent>
   );
@@ -256,5 +255,25 @@ function MagicCode({ sentEmail }: { sentEmail: string }) {
         </form>
       </Form>
     </DialogContent>
+  );
+}
+
+function GoogleOAuth() {
+  const [nonce] = useState(crypto.randomUUID());
+
+  return (
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+      <GoogleLogin
+        nonce={nonce}
+        width="400"
+        onSuccess={({ credential }) => {
+          db.auth.signInWithIdToken({
+            clientName: import.meta.env.VITE_GOOGlE_CLIENT_NAME,
+            idToken: credential!,
+            nonce,
+          });
+        }}
+      />
+    </GoogleOAuthProvider>
   );
 }
