@@ -58,6 +58,7 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
+      <div className="py-4 app-region-drag" />
       <SidebarContent>
         {data.nav.map(({ title, items }) => (
           <Collapsible

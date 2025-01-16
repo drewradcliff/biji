@@ -17,6 +17,12 @@ const _schema = i.schema({
       body: i.string(),
       createdAt: i.date(),
     }),
+    folders: i.entity({
+      name: i.string(),
+      isFavorite: i.boolean(),
+      isShared: i.boolean(),
+      createdAt: i.date(),
+    }),
   },
   // You can define links here.
   // For example, if `posts` should have many `comments`.
@@ -26,6 +32,18 @@ const _schema = i.schema({
     noteAuthor: {
       forward: { on: "notes", has: "one", label: "author" },
       reverse: { on: "profiles", has: "many", label: "authoredNotes" },
+    },
+    noteFolder: {
+      forward: { on: "notes", has: "one", label: "folder" },
+      reverse: { on: "folders", has: "many", label: "notes" },
+    },
+    folderUser: {
+      forward: { on: "folders", has: "one", label: "owner" },
+      reverse: { on: "profiles", has: "many", label: "folders" },
+    },
+    profileUser: {
+      forward: { on: "profiles", has: "one", label: "$user" },
+      reverse: { on: "$users", has: "one", label: "profile" },
     },
   },
   // If you use presence, you can define a room schema here

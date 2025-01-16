@@ -27,12 +27,10 @@ export function Editor() {
   });
 
   return (
-    <>
-      <Remirror manager={manager}>
-        <Toolbar />
-        <EditorComponent />
-      </Remirror>
-    </>
+    <Remirror manager={manager}>
+      <Toolbar />
+      <EditorComponent />
+    </Remirror>
   );
 }
 
