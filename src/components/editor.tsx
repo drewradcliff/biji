@@ -1,9 +1,9 @@
 import {
   EditorComponent,
   Remirror,
-  useCommands,
-  useRemirror,
   useActive,
+  useChainedCommands,
+  useRemirror,
 } from "@remirror/react";
 import {
   BoldExtension,
@@ -12,8 +12,7 @@ import {
   UnderlineExtension,
 } from "remirror/extensions";
 import { Bold, Italic, Underline } from "lucide-react";
-import { Button } from "./ui/button";
-import { cn } from "@/lib/utils";
+import { Toggle } from "@/components/ui/toggle";
 
 export function Editor() {
   const { manager } = useRemirror({
@@ -34,51 +33,28 @@ export function Editor() {
   );
 }
 
+const toolbarItems = [
+  { Icon: Bold, mark: "bold", command: "toggleBold" },
+  { Icon: Italic, mark: "italic", command: "toggleItalic" },
+  { Icon: Underline, mark: "underline", command: "toggleUnderline" },
+] as const;
+
 function Toolbar() {
-  const { toggleBold, toggleItalic, toggleUnderline, focus } = useCommands();
   const active = useActive();
+  const chain = useChainedCommands();
 
   return (
     <div className="space-x-2">
-      <Button
-        className={cn(active.bold() && "bg-gray-100")}
-        value="bold"
-        aria-label="Toggle bold"
-        variant="ghost"
-        size="icon"
-        onClick={() => {
-          toggleBold();
-          focus();
-        }}
-      >
-        <Bold />
-      </Button>
-      <Button
-        className={cn(active.italic() && "bg-gray-100")}
-        value="italic"
-        aria-label="Toggle italic"
-        variant="ghost"
-        size="icon"
-        onClick={() => {
-          toggleItalic();
-          focus();
-        }}
-      >
-        <Italic />
-      </Button>
-      <Button
-        className={cn(active.underline() && "bg-gray-100")}
-        value="underline"
-        aria-label="Toggle underline"
-        variant="ghost"
-        size="icon"
-        onClick={() => {
-          toggleUnderline();
-          focus();
-        }}
-      >
-        <Underline />
-      </Button>
+      {toolbarItems.map(({ Icon, mark, command }) => (
+        <Toggle
+          key={mark}
+          aria-label={`Toggle ${mark}`}
+          pressed={active[mark]()}
+          onPressedChange={() => chain[command]().focus().run()}
+        >
+          <Icon className="size-4" />
+        </Toggle>
+      ))}
     </div>
   );
 }
