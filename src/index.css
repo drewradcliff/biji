@@ -80,3 +80,9 @@
     @apply bg-background text-foreground;
   }
 }
+.ProseMirror {
+  @apply prose;
+}
+.ProseMirror:focus {
+  @apply outline-none;
+}
