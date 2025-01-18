@@ -47,11 +47,15 @@ import {
 export function App() {
   const { user } = db.useAuth();
   const [sentEmail, setSentEmail] = useState("");
+  const [selectedNote, setSelectedNote] = useState<string | null>(null);
 
   return (
     <>
       <AppSidebar />
-      <NotesList />
+      <NotesList
+        selectedNote={selectedNote}
+        setSelectedNote={setSelectedNote}
+      />
       <div className="flex-1">
         <div className="app-region-drag">
           <div className="flex justify-end items-center px-4 pt-2 gap-x-4">
@@ -210,10 +214,20 @@ function MagicCode({ sentEmail }: { sentEmail: string }) {
     },
   });
 
-  const handleSubmit = ({ code }: z.infer<typeof magicCodeFormSchema>) => {
-    db.auth.signInWithMagicCode({ email: sentEmail, code }).catch((_err) => {
-      alert("Error sending magic code");
+  const handleSubmit = async ({
+    code,
+  }: z.infer<typeof magicCodeFormSchema>) => {
+    const { user } = await db.auth.signInWithMagicCode({
+      email: sentEmail,
+      code,
     });
+    db.transact(
+      db.tx.profiles[crypto.randomUUID()]!.update({
+        createdAt: user.created_at,
+      }).link({
+        $user: user.id,
+      })
+    );
   };
 
   return (
