@@ -1,6 +1,5 @@
 import { SettingsIcon, ShareIcon } from "lucide-react";
 import { AppSidebar } from "./components/app-sidebar";
-import { Editor } from "./components/editor";
 import { NotesList } from "./components/notes-list";
 import { Avatar, AvatarImage } from "./components/ui/avatar";
 import { Button } from "./components/ui/button";
@@ -43,6 +42,7 @@ import {
   FormLabel,
   FormMessage,
 } from "./components/ui/form";
+import { PlateEditor } from "./components/editor/plate-editor";
 
 export function App() {
   const { user } = db.useAuth();
@@ -130,10 +130,10 @@ export function App() {
             )}
           </div>
         </div>
-        <div className="px-4">
+        <div className="px-4 w-full h-screen" data-registry="plate">
           <h1 className="font-semibold text-xl">Project Ideas</h1>
           <h2 className="font-light text-sm text-gray-700">Jan 5, 2025</h2>
-          <Editor />
+          <PlateEditor />
         </div>
       </div>
     </>
