@@ -5,6 +5,7 @@ import {
   ParagraphPlugin,
   PlateElement,
   PlateLeaf,
+  type CreatePlateEditorOptions,
 } from "@udecode/plate/react";
 import { BlockquotePlugin } from "@udecode/plate-block-quote/react";
 import {
@@ -75,134 +76,134 @@ import { withPlaceholders } from "@/components/plate-ui/placeholder";
 import { EmojiInputElement } from "@/components/plate-ui/emoji-input-element";
 import { SlashInputElement } from "@/components/plate-ui/slash-input-element";
 
-export const useCreateEditor = () => {
-  return usePlateEditor({
-    plugins: [
-      BlockquotePlugin,
-      CodeBlockPlugin,
-      ParagraphPlugin,
-      HeadingPlugin,
-      HorizontalRulePlugin,
-      linkPlugin,
-      ListPlugin,
-      ImagePlugin,
-      CaptionPlugin.configure({
-        options: { plugins: [ImagePlugin, MediaEmbedPlugin] },
-      }),
-      TodoListPlugin,
-      BoldPlugin,
-      ItalicPlugin,
-      StrikethroughPlugin,
-      CodePlugin,
-      SubscriptPlugin,
-      SuperscriptPlugin,
-      UnderlinePlugin,
-      KbdPlugin,
-      IndentPlugin.configure({
-        inject: { targetPlugins: ["p", "h1", "h2", "h3"] },
-      }),
-      IndentListPlugin.configure({
-        inject: { targetPlugins: ["p", "h1", "h2", "h3"] },
-      }),
-      autoformatListPlugin,
-      DndPlugin.configure({
-        options: { enableScroller: true },
-      }),
-      EmojiPlugin.configure({ options: { data: emojiMartData as any } }),
-      ExitBreakPlugin.configure({
-        options: {
-          rules: [
-            {
-              hotkey: "mod+enter",
-            },
-            {
-              before: true,
-              hotkey: "mod+shift+enter",
-            },
-            {
-              hotkey: "enter",
-              level: 1,
-              query: {
-                allow: ["h1", "h2", "h3"],
-                end: true,
-                start: true,
+export const useCreateEditor = (
+  options: Omit<CreatePlateEditorOptions, "plugins">,
+  deps?: React.DependencyList
+) => {
+  return usePlateEditor(
+    {
+      plugins: [
+        BlockquotePlugin,
+        CodeBlockPlugin,
+        ParagraphPlugin,
+        HeadingPlugin,
+        HorizontalRulePlugin,
+        linkPlugin,
+        ListPlugin,
+        ImagePlugin,
+        CaptionPlugin.configure({
+          options: { plugins: [ImagePlugin, MediaEmbedPlugin] },
+        }),
+        TodoListPlugin,
+        BoldPlugin,
+        ItalicPlugin,
+        StrikethroughPlugin,
+        CodePlugin,
+        SubscriptPlugin,
+        SuperscriptPlugin,
+        UnderlinePlugin,
+        KbdPlugin,
+        IndentPlugin.configure({
+          inject: { targetPlugins: ["p", "h1", "h2", "h3"] },
+        }),
+        IndentListPlugin.configure({
+          inject: { targetPlugins: ["p", "h1", "h2", "h3"] },
+        }),
+        autoformatListPlugin,
+        DndPlugin.configure({
+          options: { enableScroller: true },
+        }),
+        EmojiPlugin.configure({ options: { data: emojiMartData as any } }),
+        ExitBreakPlugin.configure({
+          options: {
+            rules: [
+              {
+                hotkey: "mod+enter",
               },
-              relative: true,
-            },
-          ],
-        },
-      }),
-      NodeIdPlugin,
-      ResetNodePlugin.configure({
-        options: {
-          rules: [
-            // Usage: https://platejs.org/docs/reset-node
-          ],
-        },
-      }),
-      DeletePlugin,
-      SoftBreakPlugin.configure({
-        options: {
-          rules: [
-            { hotkey: "shift+enter" },
-            {
-              hotkey: "enter",
-              query: {
-                allow: ["code_block", "blockquote", "td", "th"],
+              {
+                before: true,
+                hotkey: "mod+shift+enter",
               },
-            },
-          ],
-        },
-      }),
-      TabbablePlugin,
-      TrailingBlockPlugin.configure({
-        options: { type: "p" },
-      }),
-      cursorOverlayPlugin,
-      SlashPlugin,
-      DocxPlugin,
-      CsvPlugin,
-      MarkdownPlugin,
-      JuicePlugin,
-    ],
-    override: {
-      components: withPlaceholders({
-        [BlockquotePlugin.key]: BlockquoteElement,
-        [CodeBlockPlugin.key]: CodeBlockElement,
-        [CodeLinePlugin.key]: CodeLineElement,
-        [CodeSyntaxPlugin.key]: CodeSyntaxLeaf,
-        [EmojiInputPlugin.key]: EmojiInputElement,
-        [HorizontalRulePlugin.key]: HrElement,
-        [ImagePlugin.key]: ImageElement,
-        [LinkPlugin.key]: LinkElement,
-        [HEADING_KEYS.h1]: withProps(HeadingElement, { variant: "h1" }),
-        [HEADING_KEYS.h2]: withProps(HeadingElement, { variant: "h2" }),
-        [HEADING_KEYS.h3]: withProps(HeadingElement, { variant: "h3" }),
-        [HEADING_KEYS.h4]: withProps(HeadingElement, { variant: "h4" }),
-        [HEADING_KEYS.h5]: withProps(HeadingElement, { variant: "h5" }),
-        [HEADING_KEYS.h6]: withProps(HeadingElement, { variant: "h6" }),
-        [BulletedListPlugin.key]: withProps(ListElement, { variant: "ul" }),
-        [NumberedListPlugin.key]: withProps(ListElement, { variant: "ol" }),
-        [ListItemPlugin.key]: withProps(PlateElement, { as: "li" }),
-        [ParagraphPlugin.key]: ParagraphElement,
-        [SlashInputPlugin.key]: SlashInputElement,
-        [TodoListPlugin.key]: TodoListElement,
-        [BoldPlugin.key]: withProps(PlateLeaf, { as: "strong" }),
-        [CodePlugin.key]: CodeLeaf,
-        [ItalicPlugin.key]: withProps(PlateLeaf, { as: "em" }),
-        [KbdPlugin.key]: KbdLeaf,
-        [StrikethroughPlugin.key]: withProps(PlateLeaf, { as: "s" }),
-        [SubscriptPlugin.key]: withProps(PlateLeaf, { as: "sub" }),
-        [SuperscriptPlugin.key]: withProps(PlateLeaf, { as: "sup" }),
-        [UnderlinePlugin.key]: withProps(PlateLeaf, { as: "u" }),
-      }),
-    },
-    value: [
-      {
-        id: "1",
-        type: "p",
-        children: [{ text: "Hello, World!" }],
+              {
+                hotkey: "enter",
+                level: 1,
+                query: {
+                  allow: ["h1", "h2", "h3"],
+                  end: true,
+                  start: true,
+                },
+                relative: true,
+              },
+            ],
+          },
+        }),
+        NodeIdPlugin,
+        ResetNodePlugin.configure({
+          options: {
+            rules: [
+              // Usage: https://platejs.org/docs/reset-node
+            ],
+          },
+        }),
+        DeletePlugin,
+        SoftBreakPlugin.configure({
+          options: {
+            rules: [
+              { hotkey: "shift+enter" },
+              {
+                hotkey: "enter",
+                query: {
+                  allow: ["code_block", "blockquote", "td", "th"],
+                },
+              },
+            ],
+          },
+        }),
+        TabbablePlugin,
+        TrailingBlockPlugin.configure({
+          options: { type: "p" },
+        }),
+        cursorOverlayPlugin,
+        SlashPlugin,
+        DocxPlugin,
+        CsvPlugin,
+        MarkdownPlugin,
+        JuicePlugin,
+      ],
+      override: {
+        components: withPlaceholders({
+          [BlockquotePlugin.key]: BlockquoteElement,
+          [CodeBlockPlugin.key]: CodeBlockElement,
+          [CodeLinePlugin.key]: CodeLineElement,
+          [CodeSyntaxPlugin.key]: CodeSyntaxLeaf,
+          [EmojiInputPlugin.key]: EmojiInputElement,
+          [HorizontalRulePlugin.key]: HrElement,
+          [ImagePlugin.key]: ImageElement,
+          [LinkPlugin.key]: LinkElement,
+          [HEADING_KEYS.h1]: withProps(HeadingElement, { variant: "h1" }),
+          [HEADING_KEYS.h2]: withProps(HeadingElement, { variant: "h2" }),
+          [HEADING_KEYS.h3]: withProps(HeadingElement, { variant: "h3" }),
+          [HEADING_KEYS.h4]: withProps(HeadingElement, { variant: "h4" }),
+          [HEADING_KEYS.h5]: withProps(HeadingElement, { variant: "h5" }),
+          [HEADING_KEYS.h6]: withProps(HeadingElement, { variant: "h6" }),
+          [BulletedListPlugin.key]: withProps(ListElement, { variant: "ul" }),
+          [NumberedListPlugin.key]: withProps(ListElement, { variant: "ol" }),
+          [ListItemPlugin.key]: withProps(PlateElement, { as: "li" }),
+          [ParagraphPlugin.key]: ParagraphElement,
+          [SlashInputPlugin.key]: SlashInputElement,
+          [TodoListPlugin.key]: TodoListElement,
+          [BoldPlugin.key]: withProps(PlateLeaf, { as: "strong" }),
+          [CodePlugin.key]: CodeLeaf,
+          [ItalicPlugin.key]: withProps(PlateLeaf, { as: "em" }),
+          [KbdPlugin.key]: KbdLeaf,
+          [StrikethroughPlugin.key]: withProps(PlateLeaf, { as: "s" }),
+          [SubscriptPlugin.key]: withProps(PlateLeaf, { as: "sub" }),
+          [SuperscriptPlugin.key]: withProps(PlateLeaf, { as: "sup" }),
+          [UnderlinePlugin.key]: withProps(PlateLeaf, { as: "u" }),
+        }),
       },
-    ],
-  });
+      ...options,
+    },
+    deps
+  );
 };

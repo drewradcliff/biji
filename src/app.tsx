@@ -48,6 +48,19 @@ export function App() {
   const { user } = db.useAuth();
   const [sentEmail, setSentEmail] = useState("");
   const [selectedNote, setSelectedNote] = useState<string | null>(null);
+  const { data, isLoading } = db.useQuery(
+    selectedNote
+      ? {
+          notes: {
+            $: {
+              where: {
+                id: selectedNote,
+              },
+            },
+          },
+        }
+      : null
+  );
 
   return (
     <>
@@ -130,10 +143,19 @@ export function App() {
             )}
           </div>
         </div>
-        <div className="px-4 w-full h-screen" data-registry="plate">
-          <h1 className="font-semibold text-xl">Project Ideas</h1>
-          <h2 className="font-light text-sm text-gray-700">Jan 5, 2025</h2>
-          <PlateEditor />
+        <div className="px-4 w-full" data-registry="plate">
+          {isLoading || !data?.notes[0] ? (
+            <div>Loading...</div>
+          ) : (
+            <>
+              <h2 className="font-light text-sm text-gray-700">
+                {Intl.DateTimeFormat().format(
+                  new Date(data.notes[0].createdAt)
+                )}
+              </h2>
+              <PlateEditor note={data.notes[0]} />
+            </>
+          )}
         </div>
       </div>
     </>

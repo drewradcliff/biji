@@ -44,7 +44,6 @@ export function NotesList({ selectedNote, setSelectedNote }: Props) {
     db.transact(
       db.tx.notes[noteId]!.update({
         createdAt: new Date().toISOString(),
-        title: "New Note",
         body: "",
       }).link({
         author: data.$users[0].profile.id,
@@ -88,7 +87,7 @@ export function NotesList({ selectedNote, setSelectedNote }: Props) {
       <ScrollArea>
         {data.$users[0]?.profile?.authoredNotes.length ? (
           data.$users[0].profile.authoredNotes.map(
-            ({ id, title, body, createdAt }) => (
+            ({ id, body, createdAt }) => (
               <div
                 key={id}
                 onClick={() => setSelectedNote(id)}
@@ -101,14 +100,22 @@ export function NotesList({ selectedNote, setSelectedNote }: Props) {
                   ])}
                 >
                   <div className="flex justify-between items-center">
-                    <span className="font-semibold">{title}</span>
+                    <span className="font-semibold">
+                      {body ? (
+                        <span>{JSON.parse(body)[0]?.children[0]?.text}</span>
+                      ) : (
+                        <span>New Note</span>
+                      )}
+                    </span>
                     <span>
                       {Intl.DateTimeFormat().format(new Date(createdAt))}
                     </span>
                   </div>
-                  <span className="whitespace-break-spaces line-clamp-2">
-                    {body}
-                  </span>
+                  {body && (
+                    <span className="whitespace-break-spaces line-clamp-2">
+                      <span>{JSON.parse(body)[1]?.children[0]?.text}</span>
+                    </span>
+                  )}
                 </div>
               </div>
             )

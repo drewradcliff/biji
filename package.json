@@ -12,14 +12,15 @@
   "scripts": {
     "postinstall": "npm run models:pull",
     "models:pull": "node-llama-cpp pull --dir ./models \"hf:mradermacher/Llama-3.2-3B-Instruct-GGUF/Llama-3.2-3B-Instruct.Q8_0.gguf\"",
-    "start": "vite dev",
-    "start:build": "electron ./dist-electron",
+    "dev": "vite dev",
+    "start": "electron ./dist-electron",
     "prebuild": "rimraf ./dist ./dist-electron ./release",
     "build": "tsc && vite build && electron-builder --config ./electron-builder.ts",
     "lint": "npm run lint:eslint",
     "lint:eslint": "eslint --report-unused-disable-directives .",
     "format": "npm run lint:eslint -- --fix",
-    "clean": "rm -rf ./node_modules ./dist ./dist-electron ./release ./models"
+    "clean": "rm -rf ./node_modules ./dist ./dist-electron ./release ./models",
+    "db:push": "cd ./src && npx instant-cli@latest push schema"
   },
   "dependencies": {
     "@ariakit/react": "^0.4.15",
