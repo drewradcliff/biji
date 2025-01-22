@@ -13,7 +13,6 @@ const _schema = i.schema({
       createdAt: i.date(),
     }),
     notes: i.entity({
-      title: i.string(),
       body: i.string(),
       createdAt: i.date(),
     }),
