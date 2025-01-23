@@ -43,38 +43,27 @@ import {
   FormMessage,
 } from "./components/ui/form";
 import { PlateEditor } from "./components/editor/plate-editor";
+import { useAtom } from "jotai";
+import { selectedNoteAtom } from "./atoms";
 
 export function App() {
   const { user } = db.useAuth();
   const [sentEmail, setSentEmail] = useState("");
-  const [selectedNote, setSelectedNote] = useState<string | null>(null);
-  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
-  const { data, isLoading } = db.useQuery(
-    selectedNote
-      ? {
-          notes: {
-            $: {
-              where: {
-                id: selectedNote,
-              },
-            },
-          },
-        }
-      : null
-  );
+  const [selectedNote] = useAtom(selectedNoteAtom);
+  const { data, isLoading } = db.useQuery({
+    notes: {
+      $: {
+        where: {
+          id: selectedNote,
+        },
+      },
+    },
+  });
 
   return (
     <>
-      <AppSidebar
-        selectedFolder={selectedFolder}
-        setSelectedFolder={setSelectedFolder}
-      />
-      <NotesList
-        selectedNote={selectedNote}
-        setSelectedNote={setSelectedNote}
-        selectedFolder={selectedFolder}
-        setSelectedFolder={setSelectedFolder}
-      />
+      <AppSidebar />
+      <NotesList />
       <div className="flex-1">
         <div className="app-region-drag">
           <div className="flex justify-end items-center px-4 pt-2 gap-x-4">

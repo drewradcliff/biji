@@ -4,50 +4,32 @@ import { SidebarInput, SidebarTrigger } from "./ui/sidebar";
 import { EditIcon, FolderPlusIcon, TrashIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
+import { selectedFolderAtom, selectedNoteAtom } from "@/atoms";
+import { useAtom } from "jotai";
 
-type Props = {
-  selectedNote: string | null;
-  setSelectedNote: (id: string) => void;
-  selectedFolder: string | null;
-  setSelectedFolder: (id: string) => void;
-};
-
-export function NotesList({
-  selectedNote,
-  setSelectedNote,
-  selectedFolder,
-  setSelectedFolder,
-}: Props) {
-  const { user } = db.useAuth();
-  const { data, error } = db.useQuery(
-    user?.id && selectedFolder
-      ? {
-          $users: {
-            profile: {
-              folders: {
-                $: {
-                  where: {
-                    id: selectedFolder,
-                  },
-                },
-                notes: {},
-              },
+export function NotesList() {
+  const [selectedFolder, setSelectedFolder] = useAtom(selectedFolderAtom);
+  const [selectedNote, setSelectedNote] = useAtom(selectedNoteAtom);
+  const { data, error } = db.useQuery({
+    $users: {
+      profile: {
+        folders: {
+          $: {
+            where: {
+              id: selectedFolder,
             },
           },
-        }
-      : null
-  );
+          notes: {},
+        },
+      },
+    },
+  });
 
   if (error) {
     return;
   }
 
   const handleCreateNote = () => {
-    if (!user) {
-      alert("No user found");
-      return;
-    }
-
     if (!selectedFolder) {
       alert("No folder selected");
       return;
@@ -78,11 +60,6 @@ export function NotesList({
   };
 
   const handleCreateFolder = async () => {
-    if (!user) {
-      alert("No user found");
-      return;
-    }
-
     if (!data.$users[0]?.profile) {
       alert("No user profil found");
       return;

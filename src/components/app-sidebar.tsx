@@ -15,27 +15,17 @@ import {
 } from "./ui/collapsible";
 import { ChevronRight } from "lucide-react";
 import { db } from "@/db";
+import { useAtom } from "jotai";
+import { selectedFolderAtom, selectedNoteAtom } from "@/atoms";
 
-type Props = {
-  selectedFolder: string | null;
-  setSelectedFolder: (id: string) => void;
-} & React.ComponentProps<typeof Sidebar>;
-
-export function AppSidebar({
-  selectedFolder,
-  setSelectedFolder,
-  ...props
-}: Props) {
-  const { user } = db.useAuth();
-  const { data, isLoading, error } = db.useQuery(
-    user?.id
-      ? {
-          folders: {
-            notes: {},
-          },
-        }
-      : null
-  );
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [selectedFolder, setSelectedFolder] = useAtom(selectedFolderAtom);
+  const [, setSelectedNote] = useAtom(selectedNoteAtom);
+  const { data, isLoading, error } = db.useQuery({
+    folders: {
+      notes: {},
+    },
+  });
 
   if (error) return;
 
@@ -53,6 +43,12 @@ export function AppSidebar({
       folders: data?.folders,
     },
   ];
+
+  const handleSelectFolder = (id: string) => {
+    if (id === selectedFolder) return;
+    setSelectedFolder(id);
+    setSelectedNote("");
+  };
 
   return (
     <Sidebar {...props}>
@@ -84,7 +80,7 @@ export function AppSidebar({
                           <SidebarMenuButton
                             asChild
                             isActive={id === selectedFolder}
-                            onClick={() => setSelectedFolder(id)}
+                            onClick={() => handleSelectFolder(id)}
                           >
                             <div className="flex items-center justify-between">
                               <span>{name}</span>
