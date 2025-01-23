@@ -48,6 +48,7 @@ export function App() {
   const { user } = db.useAuth();
   const [sentEmail, setSentEmail] = useState("");
   const [selectedNote, setSelectedNote] = useState<string | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const { data, isLoading } = db.useQuery(
     selectedNote
       ? {
@@ -64,10 +65,15 @@ export function App() {
 
   return (
     <>
-      <AppSidebar />
+      <AppSidebar
+        selectedFolder={selectedFolder}
+        setSelectedFolder={setSelectedFolder}
+      />
       <NotesList
         selectedNote={selectedNote}
         setSelectedNote={setSelectedNote}
+        selectedFolder={selectedFolder}
+        setSelectedFolder={setSelectedFolder}
       />
       <div className="flex-1">
         <div className="app-region-drag">
