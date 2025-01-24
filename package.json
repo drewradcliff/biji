@@ -85,6 +85,7 @@
     "clsx": "^2.1.1",
     "highlight.js": "^11.11.1",
     "input-otp": "^1.4.2",
+    "jotai": "^2.11.1",
     "lifecycle-utils": "^2.0.0",
     "lucide-react": "^0.471.0",
     "markdown-it": "^14.1.0",

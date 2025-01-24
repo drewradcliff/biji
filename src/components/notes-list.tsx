@@ -1,42 +1,42 @@
 import { db } from "@/db";
 import { ScrollArea } from "./ui/scroll-area";
 import { SidebarInput, SidebarTrigger } from "./ui/sidebar";
-import { EditIcon, TrashIcon } from "lucide-react";
+import { EditIcon, FolderPlusIcon, TrashIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
+import { selectedFolderAtom, selectedNoteAtom } from "@/atoms";
+import { useAtom } from "jotai";
 
-type Props = {
-  selectedNote: string | null;
-  setSelectedNote: (id: string) => void;
-};
-
-export function NotesList({ selectedNote, setSelectedNote }: Props) {
-  const { user } = db.useAuth();
-  const { data, isLoading, error } = db.useQuery(
-    user?.id
-      ? {
-          $users: {
-            profile: {
-              authoredNotes: {},
+export function NotesList() {
+  const [selectedFolder, setSelectedFolder] = useAtom(selectedFolderAtom);
+  const [selectedNote, setSelectedNote] = useAtom(selectedNoteAtom);
+  const { data, error } = db.useQuery({
+    $users: {
+      profile: {
+        folders: {
+          $: {
+            where: {
+              id: selectedFolder,
             },
           },
-        }
-      : null
-  );
+          notes: {},
+        },
+      },
+    },
+  });
 
-  if (isLoading) return;
   if (error) {
-    return <div>Error</div>;
+    return;
   }
 
   const handleCreateNote = () => {
-    if (!user) {
-      // no user found
+    if (!selectedFolder) {
+      alert("No folder selected");
       return;
     }
 
     if (!data.$users[0]?.profile) {
-      // no user or profile found
+      alert("No profile found");
       return;
     }
 
@@ -47,6 +47,7 @@ export function NotesList({ selectedNote, setSelectedNote }: Props) {
         body: "",
       }).link({
         author: data.$users[0].profile.id,
+        folder: selectedFolder,
       })
     );
     setSelectedNote(noteId);
@@ -58,11 +59,39 @@ export function NotesList({ selectedNote, setSelectedNote }: Props) {
     db.transact(db.tx.notes[selectedNote].delete());
   };
 
+  const handleCreateFolder = async () => {
+    if (!data.$users[0]?.profile) {
+      alert("No user profil found");
+      return;
+    }
+
+    const id = crypto.randomUUID();
+    await db.transact(
+      db.tx.folders[id]!.update({
+        name: "New Folder",
+        createdAt: new Date().toISOString(),
+        isShared: false,
+        isFavorite: false,
+      }).link({
+        owner: data.$users[0]?.profile.id,
+      })
+    );
+    setSelectedFolder(id);
+  };
+
   return (
     <div className="w-72 border-r border-sidebar-border flex flex-col max-h-screen">
       <div className="app-region-drag pt-2 px-2 flex justify-end">
         <div className="fixed left-20 top-2 z-50 space-x-3">
           <SidebarTrigger className="app-region-no-drag" />
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 w-7 app-region-no-drag"
+            onClick={handleCreateFolder}
+          >
+            <FolderPlusIcon />
+          </Button>
           <Button
             size="sm"
             variant="ghost"
@@ -85,8 +114,8 @@ export function NotesList({ selectedNote, setSelectedNote }: Props) {
         <SidebarInput placeholder="Search..." />
       </div>
       <ScrollArea>
-        {data.$users[0]?.profile?.authoredNotes.length ? (
-          data.$users[0].profile.authoredNotes.map(
+        {data?.$users[0]?.profile?.folders[0]?.notes ? (
+          data.$users[0].profile.folders[0].notes.map(
             ({ id, body, createdAt }) => (
               <div
                 key={id}

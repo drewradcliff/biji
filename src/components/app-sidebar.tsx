@@ -14,53 +14,47 @@ import {
   CollapsibleContent,
 } from "./ui/collapsible";
 import { ChevronRight } from "lucide-react";
+import { db } from "@/db";
+import { useAtom } from "jotai";
+import { selectedFolderAtom, selectedNoteAtom } from "@/atoms";
 
-const data = {
-  nav: [
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [selectedFolder, setSelectedFolder] = useAtom(selectedFolderAtom);
+  const [, setSelectedNote] = useAtom(selectedNoteAtom);
+  const { data, isLoading, error } = db.useQuery({
+    folders: {
+      notes: {},
+    },
+  });
+
+  if (error) return;
+
+  const folderTypeList = [
     {
       title: "Favorites",
-      items: [
-        {
-          title: "daily",
-          count: 3,
-          isActive: true,
-        },
-      ],
+      folders: data?.folders.filter(({ isFavorite }) => isFavorite),
     },
     {
       title: "Shared",
-      items: [
-        {
-          title: "travel",
-          count: 3,
-          isActive: false,
-        },
-      ],
+      folders: [],
     },
     {
       title: "Folders",
-      items: [
-        {
-          title: "journal",
-          count: 21,
-          isActive: false,
-        },
-        {
-          title: "daily",
-          count: 3,
-          isActive: false,
-        },
-      ],
+      folders: data?.folders,
     },
-  ],
-};
+  ];
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const handleSelectFolder = (id: string) => {
+    if (id === selectedFolder) return;
+    setSelectedFolder(id);
+    setSelectedNote("");
+  };
+
   return (
     <Sidebar {...props}>
       <div className="py-4 app-region-drag" />
       <SidebarContent>
-        {data.nav.map(({ title, items }) => (
+        {folderTypeList.map(({ folders, title }) => (
           <Collapsible
             key={title}
             title={title}
@@ -79,18 +73,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </SidebarGroupLabel>
               <CollapsibleContent>
                 <SidebarGroupContent>
-                  <SidebarMenu>
-                    {items.map(({ title, count, isActive }) => (
-                      <SidebarMenuItem key={title}>
-                        <SidebarMenuButton asChild isActive={isActive}>
-                          <div className="flex items-center justify-between">
-                            <span>{title}</span>
-                            <span>{count}</span>
-                          </div>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
+                  {!isLoading && (
+                    <SidebarMenu>
+                      {folders.map(({ id, name, notes }) => (
+                        <SidebarMenuItem key={id}>
+                          <SidebarMenuButton
+                            asChild
+                            isActive={id === selectedFolder}
+                            onClick={() => handleSelectFolder(id)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span>{name}</span>
+                              <span>{notes.length}</span>
+                            </div>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  )}
                 </SidebarGroupContent>
               </CollapsibleContent>
             </SidebarGroup>
