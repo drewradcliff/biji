@@ -24,6 +24,8 @@ import { db } from "@/db";
 import { useAtom } from "jotai";
 import { selectedFolderAtom, selectedNoteAtom } from "@/atoms";
 import { useState, useEffect, useRef } from "react";
+import { InstaQLEntity } from "@instantdb/react";
+import { AppSchema } from "@/instant.schema";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data, isLoading, error } = db.useQuery({
@@ -101,7 +103,7 @@ function SidebarInput({
 }: {
   id: string;
   name: string;
-  notes: any[];
+  notes: InstaQLEntity<AppSchema, "notes">[];
 }) {
   const [selectedFolder, setSelectedFolder] = useAtom(selectedFolderAtom);
   const [, setSelectedNote] = useAtom(selectedNoteAtom);
