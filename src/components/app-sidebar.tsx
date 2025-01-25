@@ -9,6 +9,12 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import {
   CollapsibleTrigger,
   Collapsible,
   CollapsibleContent,
@@ -17,10 +23,11 @@ import { ChevronRight } from "lucide-react";
 import { db } from "@/db";
 import { useAtom } from "jotai";
 import { selectedFolderAtom, selectedNoteAtom } from "@/atoms";
+import { useState, useEffect, useRef } from "react";
+import { InstaQLEntity } from "@instantdb/react";
+import { AppSchema } from "@/instant.schema";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [selectedFolder, setSelectedFolder] = useAtom(selectedFolderAtom);
-  const [, setSelectedNote] = useAtom(selectedNoteAtom);
   const { data, isLoading, error } = db.useQuery({
     folders: {
       notes: {},
@@ -43,12 +50,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       folders: data?.folders,
     },
   ];
-
-  const handleSelectFolder = (id: string) => {
-    if (id === selectedFolder) return;
-    setSelectedFolder(id);
-    setSelectedNote("");
-  };
 
   return (
     <Sidebar {...props}>
@@ -76,18 +77,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   {!isLoading && (
                     <SidebarMenu>
                       {folders.map(({ id, name, notes }) => (
-                        <SidebarMenuItem key={id}>
-                          <SidebarMenuButton
-                            asChild
-                            isActive={id === selectedFolder}
-                            onClick={() => handleSelectFolder(id)}
-                          >
-                            <div className="flex items-center justify-between">
-                              <span>{name}</span>
-                              <span>{notes.length}</span>
-                            </div>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
+                        <SidebarInput
+                          key={id}
+                          id={id}
+                          name={name}
+                          notes={notes}
+                        />
                       ))}
                     </SidebarMenu>
                   )}
@@ -98,5 +93,106 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ))}
       </SidebarContent>
     </Sidebar>
+  );
+}
+
+function SidebarInput({
+  id,
+  name,
+  notes,
+}: {
+  id: string;
+  name: string;
+  notes: InstaQLEntity<AppSchema, "notes">[];
+}) {
+  const [selectedFolder, setSelectedFolder] = useAtom(selectedFolderAtom);
+  const [, setSelectedNote] = useAtom(selectedNoteAtom);
+  const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const showInput = editingFolderId === id;
+
+  const handleRenameSubmit = (id: string) => {
+    if (editingName.trim()) {
+      db.transact(
+        db.tx.folders[id]!.update({
+          name: editingName.trim(),
+        })
+      );
+    }
+    setEditingFolderId(null);
+    setEditingName("");
+  };
+
+  const handleSelectFolder = (id: string) => {
+    if (id === selectedFolder) return;
+    setSelectedFolder(id);
+    setSelectedNote("");
+  };
+
+  const handleRename = (id: string, currentName: string) => {
+    setEditingFolderId(id);
+    setEditingName(currentName);
+  };
+
+  const handleDelete = (id: string) => {
+    db.transact([
+      db.tx.folders[id]!.delete(),
+      ...notes.map(({ id }) => db.tx.notes[id]!.delete()),
+    ]);
+  };
+
+  useEffect(() => {
+    if (showInput && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      });
+    }
+  }, [showInput]);
+
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            asChild
+            isActive={id === selectedFolder}
+            onClick={() => {
+              handleSelectFolder(id);
+            }}
+          >
+            <div className="flex items-center justify-between">
+              {showInput ? (
+                <input
+                  ref={inputRef}
+                  value={editingName}
+                  onChange={(e) => setEditingName(e.target.value)}
+                  onBlur={() => handleRenameSubmit(id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleRenameSubmit(id);
+                    if (e.key === "Escape") {
+                      setEditingFolderId(null);
+                      setEditingName("");
+                    }
+                  }}
+                />
+              ) : (
+                <span>{name}</span>
+              )}
+              <span>{notes.length}</span>
+            </div>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem onClick={() => handleRename(id, name)}>
+          Rename
+        </ContextMenuItem>
+        <ContextMenuItem onClick={() => handleDelete(id)}>
+          Delete
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   );
 }
