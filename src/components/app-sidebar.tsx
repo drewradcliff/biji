@@ -23,7 +23,7 @@ import { ChevronRight } from "lucide-react";
 import { db } from "@/db";
 import { useAtom } from "jotai";
 import { selectedFolderAtom, selectedNoteAtom } from "@/atoms";
-import { useState, useEffect, useRef, Ref, RefObject } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data, isLoading, error } = db.useQuery({
@@ -110,14 +110,13 @@ function SidebarInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const showInput = editingFolderId === id;
 
-  const handleRenameSubmit = async (id: string) => {
+  const handleRenameSubmit = (id: string) => {
     if (editingName.trim()) {
-      // await db.update({
-      //   folders: {
-      //     where: { id },
-      //     data: { name: editingName.trim() },
-      //   },
-      // });
+      db.transact(
+        db.tx.folders[id]!.update({
+          name: editingName.trim(),
+        })
+      );
     }
     setEditingFolderId(null);
     setEditingName("");
@@ -132,17 +131,21 @@ function SidebarInput({
   const handleRename = (id: string, currentName: string) => {
     setEditingFolderId(id);
     setEditingName(currentName);
-    console.log("rename");
-    // if (inputRef.current) {
-    //   console.log("rename focus");
-    //   inputRef.current.focus();
-    // }
+  };
+
+  const handleDelete = (id: string) => {
+    db.transact([
+      db.tx.folders[id]!.delete(),
+      ...notes.map(({ id }) => db.tx.notes[id]!.delete()),
+    ]);
   };
 
   useEffect(() => {
     if (showInput && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
+      setTimeout(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      });
     }
   }, [showInput]);
 
@@ -161,24 +164,16 @@ function SidebarInput({
               {showInput ? (
                 <input
                   ref={inputRef}
-                  defaultValue="test"
-                  // ref={(current) => {
-                  //   console.log(id === editingFolderId);
-                  //   // console.log("ref focus");
-                  //   // console.log(current);
-                  //   current?.focus();
-                  //   current?.select();
-                  // }}
-                  // value={editingName}
-                  // onChange={(e) => setEditingName(e.target.value)}
-                  // onBlur={() => handleRenameSubmit(id)}
-                  // onKeyDown={(e) => {
-                  //   if (e.key === "Enter") handleRenameSubmit(id);
-                  //   if (e.key === "Escape") {
-                  //     setEditingFolderId(null);
-                  //     setEditingName("");
-                  //   }
-                  // }}
+                  value={editingName}
+                  onChange={(e) => setEditingName(e.target.value)}
+                  onBlur={() => handleRenameSubmit(id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleRenameSubmit(id);
+                    if (e.key === "Escape") {
+                      setEditingFolderId(null);
+                      setEditingName("");
+                    }
+                  }}
                 />
               ) : (
                 <span>{name}</span>
@@ -189,64 +184,13 @@ function SidebarInput({
         </SidebarMenuItem>
       </ContextMenuTrigger>
       <ContextMenuContent>
-        <ContextMenuItem
-          onClick={({ currentTarget }) => {
-            handleRename(id, name);
-            // if (editingFolderId !== id) return;
-
-            // const input = currentTarget.querySelector("input");
-            // console.log(input);
-            // input?.focus();
-            // input?.select();
-          }}
-        >
+        <ContextMenuItem onClick={() => handleRename(id, name)}>
           Rename
         </ContextMenuItem>
-        <ContextMenuItem>Delete</ContextMenuItem>
+        <ContextMenuItem onClick={() => handleDelete(id)}>
+          Delete
+        </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
-  );
-}
-
-function Input() {
-  // const inputRef = useRef<HTMLInputElement>(null);
-
-  // useEffect(() => {
-  //   if (inputRef.current) {
-  //     console.log("input select");
-  //     console.log(inputRef.current);
-  //     inputRef.current.focus();
-  //   }
-  // }, [inputRef.current]);
-
-  return (
-    <input
-      // ref={inputRef}
-      // ref={(current) => {
-      //   // console.log("ref focus");
-      //   // console.log(current);
-      //   if (!current) return;
-      //   current.focus();
-      //   current.select();
-      // }}
-      type="text"
-      // value={editingName}
-      defaultValue="test"
-      // onChange={(e) => setEditingName(e.target.value)}
-      // onBlur={() => handleRenameSubmit(id)}
-      // onKeyDown={(e) => {
-      //   if (e.key === "Enter") handleRenameSubmit(id);
-      //   if (e.key === "Escape") {
-      //     setEditingFolderId(null);
-      //     setEditingName("");
-      //   }
-      // }}
-      onFocus={(e) => {
-        console.log("focus");
-        e.currentTarget.select();
-      }}
-      // className="bg-gray-50 w-full rounded-sm"
-      // autoFocus
-    />
   );
 }
