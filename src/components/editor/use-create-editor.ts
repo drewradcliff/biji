@@ -1,4 +1,5 @@
 import emojiMartData from "@emoji-mart/data";
+import { AIPlugin } from "@udecode/plate-ai/react";
 import { withProps } from "@udecode/cn";
 import {
   usePlateEditor,
@@ -75,6 +76,8 @@ import { KbdLeaf } from "@/components/plate-ui/kbd-leaf";
 import { withPlaceholders } from "@/components/plate-ui/placeholder";
 import { EmojiInputElement } from "@/components/plate-ui/emoji-input-element";
 import { SlashInputElement } from "@/components/plate-ui/slash-input-element";
+import { AILeaf } from "../plate-ui/ai-leaf";
+import { aiPlugins } from "./plugins/ai-plugins";
 
 export const useCreateEditor = (
   options: Omit<CreatePlateEditorOptions, "plugins">,
@@ -83,6 +86,7 @@ export const useCreateEditor = (
   return usePlateEditor(
     {
       plugins: [
+        ...aiPlugins,
         BlockquotePlugin,
         CodeBlockPlugin,
         ParagraphPlugin,
@@ -172,6 +176,7 @@ export const useCreateEditor = (
       ],
       override: {
         components: withPlaceholders({
+          [AIPlugin.key]: AILeaf,
           [BlockquotePlugin.key]: BlockquoteElement,
           [CodeBlockPlugin.key]: CodeBlockElement,
           [CodeLinePlugin.key]: CodeLineElement,
