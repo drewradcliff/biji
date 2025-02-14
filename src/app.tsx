@@ -19,32 +19,16 @@ import { db } from "./db";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "./components/ui/dialog";
-import { Input } from "./components/ui/input";
 import { useState } from "react";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "./components/ui/input-otp";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "./components/ui/form";
 import { PlateEditor } from "./components/editor/plate-editor";
 import { useAtom } from "jotai";
 import { selectedNoteAtom } from "./atoms";
+import { SignUp } from "./components/sign-up";
+import { MagicCode } from "./components/magic-code";
 
 export function App() {
   const { user } = db.useAuth();
@@ -59,6 +43,7 @@ export function App() {
       },
     },
   });
+  const [openSettings, setOpenSettings] = useState(false);
 
   return (
     <>
@@ -88,10 +73,17 @@ export function App() {
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuGroup>
-                      <DropdownMenuItem>
-                        Settings
-                        <DropdownMenuShortcut>⌘ ,</DropdownMenuShortcut>
-                      </DropdownMenuItem>
+                      <Dialog>
+                        <DropdownMenuItem onClick={() => setOpenSettings(true)}>
+                          Settings
+                          <DropdownMenuShortcut>⌘ ,</DropdownMenuShortcut>
+                        </DropdownMenuItem>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Settings</DialogTitle>
+                          </DialogHeader>
+                        </DialogContent>
+                      </Dialog>
                       <DropdownMenuItem>
                         Commands
                         <DropdownMenuShortcut>⌘ K</DropdownMenuShortcut>
@@ -139,9 +131,7 @@ export function App() {
           </div>
         </div>
         <div className="px-4 w-full" data-registry="plate">
-          {isLoading || !data?.notes[0] ? (
-            <div>Loading...</div>
-          ) : (
+          {!isLoading && data?.notes[0] && (
             <>
               <h2 className="font-light text-sm text-gray-700">
                 {Intl.DateTimeFormat().format(
@@ -153,139 +143,9 @@ export function App() {
           )}
         </div>
       </div>
+      <Dialog open={openSettings} onOpenChange={setOpenSettings}>
+        <DialogContent className="max-w-md">Settings</DialogContent>
+      </Dialog>
     </>
-  );
-}
-
-const signUpFormSchema = z.object({
-  email: z.string().email(),
-});
-
-function SignUp({ setSentEmail }: { setSentEmail: (email: string) => void }) {
-  const form = useForm<z.infer<typeof signUpFormSchema>>({
-    resolver: zodResolver(signUpFormSchema),
-    defaultValues: {
-      email: "",
-    },
-  });
-
-  const handleSubmit = ({ email }: z.infer<typeof signUpFormSchema>) => {
-    setSentEmail(email);
-    db.auth.sendMagicCode({ email }).catch((_err) => {
-      alert("Error sending magic code");
-      setSentEmail("");
-    });
-  };
-
-  return (
-    <DialogContent className="max-w-md">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-          <DialogTitle>
-            <DialogHeader className="font-semibold text-xl">Login</DialogHeader>
-            <DialogDescription>
-              Enter email address and we will send you a verification code.
-            </DialogDescription>
-          </DialogTitle>
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel htmlFor="email">Email</FormLabel>
-                <FormControl>
-                  <Input placeholder="example@test.com" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button className="w-full" type="submit">
-            Send Code
-          </Button>
-          <div className="flex items-center my-2 gap-x-4">
-            <div className="h-px bg-gray-200 w-full" />
-            <span>or</span>
-            <div className="h-px bg-gray-200 w-full" />
-          </div>
-        </form>
-        <Button className="w-full" variant="outline">
-          Continue with Google
-        </Button>
-      </Form>
-    </DialogContent>
-  );
-}
-
-const magicCodeFormSchema = z.object({
-  code: z.string().min(6, {
-    message: "Code must be 6 characters",
-  }),
-});
-
-function MagicCode({ sentEmail }: { sentEmail: string }) {
-  const form = useForm<z.infer<typeof magicCodeFormSchema>>({
-    resolver: zodResolver(magicCodeFormSchema),
-    defaultValues: {
-      code: "",
-    },
-  });
-
-  const handleSubmit = async ({
-    code,
-  }: z.infer<typeof magicCodeFormSchema>) => {
-    const { user } = await db.auth.signInWithMagicCode({
-      email: sentEmail,
-      code,
-    });
-    db.transact(
-      db.tx.profiles[crypto.randomUUID()]!.update({
-        createdAt: user.created_at,
-      }).link({
-        $user: user.id,
-      })
-    );
-  };
-
-  return (
-    <DialogContent className="max-w-md">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-          <DialogTitle>
-            <DialogHeader className="font-semibold text-xl">
-              Enter Email Code
-            </DialogHeader>
-            <DialogDescription>
-              Enter the 6-digit code sent to <strong>{sentEmail}</strong>
-            </DialogDescription>
-          </DialogTitle>
-          <FormField
-            control={form.control}
-            name="code"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Code</FormLabel>
-                <FormControl>
-                  <InputOTP maxLength={6} {...field}>
-                    <InputOTPGroup className="w-full justify-center">
-                      <InputOTPSlot index={0} />
-                      <InputOTPSlot index={1} />
-                      <InputOTPSlot index={2} />
-                      <InputOTPSlot index={3} />
-                      <InputOTPSlot index={4} />
-                      <InputOTPSlot index={5} />
-                    </InputOTPGroup>
-                  </InputOTP>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button type="submit" className="w-full">
-            Verify Code
-          </Button>
-        </form>
-      </Form>
-    </DialogContent>
   );
 }
