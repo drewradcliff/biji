@@ -3,7 +3,6 @@
 import { faker } from "@faker-js/faker";
 import { useChat as useBaseChat } from "ai/react";
 
-// import { useSettings } from "@/components/editor/settings";
 import { db } from "@/db";
 import { electronLlmRpc } from "@/rpc/llmRpc";
 import { llmState } from "@/state/llmState";
@@ -11,49 +10,33 @@ import { useCallback } from "react";
 import { useExternalState } from "@/hooks/useExternalState";
 
 export const useChat = () => {
-  // const { model } = useSettings();
   const { user } = db.useAuth();
   const { chatSession } = useExternalState(llmState);
-
-  const openSelectModelFileDialog = useCallback(async () => {
-    await electronLlmRpc.selectModelFileAndLoad();
-  }, []);
 
   const sendPrompt = useCallback(
     (prompt: string) => {
       if (chatSession.generatingResult) return;
-
       void electronLlmRpc.prompt(prompt);
     },
     [chatSession.generatingResult]
   );
 
-  console.log(chatSession.simplifiedChat);
-
   return useBaseChat({
     id: "editor",
     api: "http://localhost:3000/api/ai/command",
-    body: {
-      // model: model.value,
-    },
     fetch: async (input, init) => {
-      // console.log({ input });
-      // console.log({ init });
-      // if (!user) {
-      // await new Promise((resolve) => setTimeout(resolve, 400));
-
-      console.log("prompting");
-      openSelectModelFileDialog();
-      sendPrompt("hello world");
-
-      const stream = fakeStreamText();
-      return new Response(stream, {
-        headers: {
-          Connection: "keep-alive",
-          "Content-Type": "text/plain",
-        },
-      });
-      // return await fetch(input, init);
+      if (!user) {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        sendPrompt("hello world");
+        const stream = fakeStreamText();
+        return new Response(stream, {
+          headers: {
+            Connection: "keep-alive",
+            "Content-Type": "text/plain",
+          },
+        });
+      }
+      return await fetch(input, init);
     },
   });
 };
