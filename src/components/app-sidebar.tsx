@@ -76,12 +76,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <SidebarGroupContent>
                   {!isLoading && (
                     <SidebarMenu>
-                      {folders.map(({ id, name, notes }) => (
+                      {folders.map(({ id, name, notes, isFavorite }) => (
                         <SidebarInput
                           key={id}
                           id={id}
                           name={name}
                           notes={notes}
+                          isFavorite={isFavorite}
                         />
                       ))}
                     </SidebarMenu>
@@ -100,10 +101,12 @@ function SidebarInput({
   id,
   name,
   notes,
+  isFavorite,
 }: {
   id: string;
   name: string;
   notes: InstaQLEntity<AppSchema, "notes">[];
+  isFavorite: boolean;
 }) {
   const [selectedFolder, setSelectedFolder] = useAtom(selectedFolderAtom);
   const [, setSelectedNote] = useAtom(selectedNoteAtom);
@@ -140,6 +143,14 @@ function SidebarInput({
       db.tx.folders[id]!.delete(),
       ...notes.map(({ id }) => db.tx.notes[id]!.delete()),
     ]);
+  };
+
+  const handleToggleFavorite = (id: string) => {
+    db.transact(
+      db.tx.folders[id]!.update({
+        isFavorite: !isFavorite,
+      })
+    );
   };
 
   useEffect(() => {
@@ -186,6 +197,9 @@ function SidebarInput({
         </SidebarMenuItem>
       </ContextMenuTrigger>
       <ContextMenuContent>
+        <ContextMenuItem onClick={() => handleToggleFavorite(id)}>
+          {isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+        </ContextMenuItem>
         <ContextMenuItem onClick={() => handleRename(id, name)}>
           Rename
         </ContextMenuItem>
