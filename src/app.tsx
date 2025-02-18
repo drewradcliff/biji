@@ -1,7 +1,7 @@
 import { CheckIcon, SettingsIcon, ShareIcon } from "lucide-react";
 import { AppSidebar } from "./components/app-sidebar";
 import { NotesList } from "./components/notes-list";
-import { Avatar, AvatarImage } from "./components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
 import { Button } from "./components/ui/button";
 import {
   DropdownMenu,
@@ -15,7 +15,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@radix-ui/react-dropdown-menu";
-import { db } from "./db";
+import { db, room } from "./db";
 import {
   Dialog,
   DialogContent,
@@ -35,9 +35,13 @@ import { Input } from "./components/ui/input";
 import { useExternalState } from "./hooks/useExternalState";
 import { llmState } from "./state/llmState";
 import { electronLlmRpc } from "./rpc/llmRpc";
+import colors from "tailwindcss/colors";
 
 export function App() {
   const { user } = db.useAuth();
+  const { peers, publishPresence } = room.usePresence({
+    user: true,
+  });
   const [sentEmail, setSentEmail] = useState("");
   const [openSettings, setOpenSettings] = useState(false);
   const [selectedNote] = useAtom(selectedNoteAtom);
@@ -51,6 +55,12 @@ export function App() {
       },
     },
   });
+
+  function getRandomColor() {
+    const colorKeys = Object.keys(colors);
+    const randomColor = colorKeys[Math.floor(Math.random() * colorKeys.length)];
+    return colors[randomColor as keyof typeof colors]["200"];
+  }
 
   const openSelectModelFileDialog = useCallback(async () => {
     await electronLlmRpc.selectModelFileAndLoad();
@@ -67,6 +77,13 @@ export function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    publishPresence({
+      name: "User#" + Math.random().toString(36).slice(2, 6),
+      color: getRandomColor(),
+    });
+  }, []);
+
   return (
     <>
       <AppSidebar />
@@ -75,54 +92,71 @@ export function App() {
         <div className="app-region-drag">
           <div className="flex justify-end items-center px-4 pt-2 gap-x-4">
             <Button
-              className="app-region-no-drag cursor-pointer"
+              size="sm"
+              className="h-7 w-7 app-region-no-drag"
               variant="ghost"
-              size="icon"
             >
-              <ShareIcon className="size-4" />
+              <ShareIcon />
             </Button>
             {user ? (
-              <Avatar className="size-6 app-region-no-drag cursor-pointer">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <AvatarImage src="https://pbs.twimg.com/profile_images/1535420431766671360/Pwq-1eJc_200x200.jpg" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56">
-                    <DropdownMenuLabel className="p-2 flex flex-col">
-                      <span className="text-xs font-light text-gray-500">
-                        {user.email}
-                      </span>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                      <Dialog>
-                        <DropdownMenuItem onClick={() => setOpenSettings(true)}>
-                          Settings
-                          <DropdownMenuShortcut>⌘ ,</DropdownMenuShortcut>
+              <>
+                <Avatar className="size-6 app-region-no-drag cursor-pointer z-10 border border-white">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <AvatarImage src="https://pbs.twimg.com/profile_images/1535420431766671360/Pwq-1eJc_200x200.jpg" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56">
+                      <DropdownMenuLabel className="p-2 flex flex-col">
+                        <span className="text-xs font-light text-gray-500">
+                          {user.email}
+                        </span>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuGroup>
+                        <Dialog>
+                          <DropdownMenuItem
+                            onClick={() => setOpenSettings(true)}
+                          >
+                            Settings
+                            <DropdownMenuShortcut>⌘ ,</DropdownMenuShortcut>
+                          </DropdownMenuItem>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Settings</DialogTitle>
+                            </DialogHeader>
+                          </DialogContent>
+                        </Dialog>
+                        <DropdownMenuItem>
+                          Commands
+                          <DropdownMenuShortcut>⌘ K</DropdownMenuShortcut>
                         </DropdownMenuItem>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Settings</DialogTitle>
-                          </DialogHeader>
-                        </DialogContent>
-                      </Dialog>
-                      <DropdownMenuItem>
-                        Commands
-                        <DropdownMenuShortcut>⌘ K</DropdownMenuShortcut>
+                      </DropdownMenuGroup>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          db.auth.signOut();
+                          setSentEmail("");
+                        }}
+                      >
+                        Log out
                       </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => {
-                        db.auth.signOut();
-                        setSentEmail("");
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </Avatar>
+                {Object.entries(peers).map(([id, peer]) => (
+                  <Avatar key={id} className="size-6 -ml-5 border border-white">
+                    <AvatarImage src="" />
+                    <AvatarFallback
+                      className="text-sm"
+                      style={{
+                        backgroundColor: peer.color || colors.gray[200],
                       }}
                     >
-                      Log out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </Avatar>
+                      {peer?.name?.[0]?.toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                ))}
+              </>
             ) : (
               <>
                 <Button

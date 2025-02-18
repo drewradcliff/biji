@@ -45,9 +45,15 @@ const _schema = i.schema({
       reverse: { on: "$users", has: "one", label: "profile" },
     },
   },
-  // If you use presence, you can define a room schema here
-  // https://www.instantdb.com/docs/presence-and-topics#typesafety
-  rooms: {},
+  rooms: {
+    shared: {
+      presence: i.entity({
+        name: i.string(),
+        color: i.string(),
+      }),
+      topics: {},
+    },
+  },
 });
 
 // This helps Typescript display nicer intellisense
