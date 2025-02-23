@@ -12,6 +12,9 @@ const _schema = i.schema({
       name: i.string(),
       createdAt: i.date(),
     }),
+    roles: i.entity({
+      type: i.string().unique(),
+    }),
     notes: i.entity({
       body: i.string(),
       createdAt: i.date(),
@@ -28,9 +31,9 @@ const _schema = i.schema({
   // More in the docs:
   // https://www.instantdb.com/docs/modeling-data#3-links
   links: {
-    noteAuthor: {
-      forward: { on: "notes", has: "one", label: "author" },
-      reverse: { on: "profiles", has: "many", label: "authoredNotes" },
+    noteOwner: {
+      forward: { on: "notes", has: "one", label: "owner" },
+      reverse: { on: "$users", has: "many", label: "notes" },
     },
     noteFolder: {
       forward: { on: "notes", has: "one", label: "folder" },
@@ -43,6 +46,10 @@ const _schema = i.schema({
     profileUser: {
       forward: { on: "profiles", has: "one", label: "$user" },
       reverse: { on: "$users", has: "one", label: "profile" },
+    },
+    userRoles: {
+      forward: { on: "roles", has: "many", label: "users" },
+      reverse: { on: "$users", has: "one", label: "role" },
     },
   },
   rooms: {

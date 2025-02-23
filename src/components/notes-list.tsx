@@ -46,7 +46,7 @@ export function NotesList() {
         createdAt: new Date().toISOString(),
         body: "",
       }).link({
-        author: data.$users[0].profile.id,
+        owner: data.$users[0].profile.id,
         folder: selectedFolder,
       })
     );
