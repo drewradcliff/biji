@@ -67,8 +67,8 @@ Start writing a new paragraph AFTER <Document> ONLY ONE SENTENCE`
     shortcut: 'Escape',
     value: 'discard',
     onSelect: ({ editor }) => {
-      editor.getTransforms(AIPlugin).ai.undo();
-      editor.getApi(AIChatPlugin).aiChat.hide();
+      editor.getTransforms(AIPlugin)?.ai?.undo();
+      editor.getApi(AIChatPlugin)?.aiChat?.hide();
     },
   },
   emojify: {
@@ -272,7 +272,7 @@ export const AIMenuItems = ({
   }, [menuState]);
 
   useEffect(() => {
-    if (menuGroups.length > 0 && menuGroups[0].items.length > 0) {
+    if (menuGroups?.[0]?.items?.[0]?.value) {
       setValue(menuGroups[0].items[0].value);
     }
   }, [menuGroups, setValue]);

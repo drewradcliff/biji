@@ -23,7 +23,7 @@ export const useChat = () => {
 
   return useBaseChat({
     id: "editor",
-    api: "http://localhost:3000/api/ai/command",
+    api: import.meta.env.VITE_API_URL + "/api/ai/command",
     fetch: async (input, init) => {
       if (!user) {
         await new Promise((resolve) => setTimeout(resolve, 400));
@@ -73,7 +73,7 @@ const fakeStreamText = ({
         const block = blocks[i];
 
         // Stream the block content
-        for (const chunk of block) {
+        for (const chunk of block ?? []) {
           await new Promise((resolve) => setTimeout(resolve, chunk.delay));
 
           if (streamProtocol === "text") {

@@ -1,5 +1,6 @@
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+// @ts-ignore
 import { app, shell, BrowserWindow } from "electron";
 import { registerLlmRpc } from "./rpc/llmRpc.ts";
 
@@ -39,7 +40,7 @@ function createWindow() {
   registerLlmRpc(win);
 
   // open external links in the default browser
-  win.webContents.setWindowOpenHandler(({ url }) => {
+  win.webContents.setWindowOpenHandler(({ url }: { url: string }) => {
     if (url.startsWith("file://")) return { action: "allow" };
 
     void shell.openExternal(url);
